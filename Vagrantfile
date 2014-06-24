@@ -6,6 +6,7 @@
     export login="graphite"
     export password="graphite"
     export email="lrochette@electric-cloud.com"
+    export VERSION=0.9.12
 
     set -x
     echo I am provisioning...
@@ -34,12 +35,12 @@
 
 
     # We will use python-setuptool's "easy_install" utility to install a few more important python components:
-    pip install carbon
-    pip install graphite-web
-    pip install whisper
-    pip install Twisted==11.1.0
-    pip install django==1.5
-    pip install django-tagging==0.3.1
+    pip install carbon # ==$VERSION
+    pip install graphite-web # ==$VERSION
+    pip install whisper # ==$VERSION
+    pip install Twisted # ==11.1.0
+    pip install django # ==1.5
+    pip install django-tagging # ==0.3.1
 
 
     # configure Graphite
@@ -49,7 +50,6 @@
     cd /opt/graphite/webapp/graphite
     python manage.py syncdb --noinput
     python manage.py createsuperuser --username="${login}" --email="${email}" --noinput
-
     expect << DONE
         spawn python manage.py changepassword "${login}"
         expect "Password: "
@@ -85,7 +85,7 @@ DONE
     # Start Services
     /opt/graphite/bin/carbon-cache.py start
     cd /opt/statsd
-    node ./stats.js ./localConfig.js  
+    node ./stats.js ./localConfig.js  &
 
 SCRIPT
 
