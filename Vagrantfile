@@ -16,6 +16,10 @@
     ntpdate -u http://pool.ntp.org
     dpkg-reconfigure --frontend noninteractive tzdata
 
+    # Remove apparmor
+    /etc/init.d/apparmor stop
+    apt-get --purge remove -y apparmor apparmor-utils libapparmor-perl libapparmor1
+
     # install the needed package
     echo "Install Required packages"
     apt-get install -y graphite-web graphite-carbon
