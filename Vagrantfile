@@ -6,7 +6,7 @@
     export login="graphite"
     export password="graphite"
     export email="lrochette@electric-cloud.com"
-    export VERSION=0.9.12
+    export VERSION=0.9.10
 
     set -x
     echo I am provisioning...
@@ -18,40 +18,21 @@
 
     # install the needed package
     echo "Install Required packages"
-    apt-get install -y apache2
-    apt-get install -y erlang-os-mon
-    apt-get install -y erlang-snmp
+    apt-get install -y graphite-web graphite-carbon
+    
+    # install and configure DB
+    apt-get install -y postgresql libpq-dev python-psycopg2
     apt-get install -y expect
-    apt-get install -y libapache2-mod-python
-    apt-get install -y libapache2-mod-wsgi
-    apt-get install -y memcached
-    apt-get install -y python-cairo-dev
-    apt-get install -y python-dev
-    apt-get install -y python-ldap
-    apt-get install -y python-memcache
-    apt-get install -y python-pip
-    apt-get install -y python-pysqlite2
-    apt-get install -y sqlite3
+    sudo -u postgres psql << DB
+CREATE USER graphite WITH PASSWORD 'graphite';
+CREATE DATABASE graphite WITH OWNER graphite;
+DB
 
-
-    # We will use python-setuptool's "easy_install" utility to install a few more important python components:
-    pip install carbon # ==$VERSION
-    pip install graphite-web # ==$VERSION
-    pip install whisper # ==$VERSION
-    pip install Twisted # ==11.1.0
-    pip install django # ==1.5
-    pip install django-tagging # ==0.3.1
-
-
-    # configure Graphite
-    cp /vagrant/files/carbon.conf /opt/graphite/conf
-    cp /vagrant/files/storage-schemas.conf /opt/graphite/conf
-
-    cd /opt/graphite/webapp/graphite
-    python manage.py syncdb --noinput
-    python manage.py createsuperuser --username="${login}" --email="${email}" --noinput
+    cp /vagrant/files/local_settings.py /etc/graphite/local_settings.py
+    graphite-manage syncdb --noinput
+    graphite-manage createsuperuser --username="${login}" --email="${email}" --noinput
     expect << DONE
-        spawn python manage.py changepassword "${login}"
+        spawn graphite-manage changepassword "${login}"
         expect "Password: "
         send -- "${password}\r"
         expect "Password (again): "
@@ -59,34 +40,34 @@
         expect eof
 DONE
 
-    cp /vagrant/files/local_settings.py /opt/graphite/webapp/graphite
+    cp /vagrant/files/graphite-carbon /etc/default/graphite-carbon
+    cp /vagrant/files/carbon.conf /etc/carbon/carbon.conf
+    cp /vagrant/files/storage-schemas.conf /etc/carbon/storage-schemas.conf
+    cp /vagrant/files/storage-aggregation.conf /etc/carbon/storage-aggregation.conf
+    service carbon-cache start
 
-    # Configure apache
-    echo "Configuring Apache"
-    cp /vagrant/files/graphite-vhost.conf /etc/apache2/sites-available/default
-    cp /vagrant/files/graphite.wsgi /opt/graphite/conf/graphite.wsgi
-    chown -R www-data:www-data /opt/graphite/storage
-    mkdir -p /etc/httpd/wsgi
-    service apache2 restart
+    # install and configure apache
+    apt-get install -y apache2 libapache2-mod-wsgi
+    a2dissite 000-default
+    cp /vagrant/files/apache2-graphite.conf /etc/apache2/sites-available
+    a2ensite apache2-graphite
+    service apache2 reload
 
-    # statsd
-    echo "Install and configure statsd"
-    apt-get -y install python-software-properties
-    apt-add-repository -y ppa:chris-lea/node.js
-    apt-get update
-    apt-get install -y nodejs
-
-    # install git and clone statsd
-    apt-get install -y git
+    #install and configure statsd
+    apt-get install -y git nodejs devscripts debhelper
     cd /opt
-    git clone git://github.com/etsy/statsd.git
-    cp /vagrant/files/localConfig.js /opt/statsd/localConfig.js
+    git clone https://github.com/etsy/statsd.git
+    cd statsd
+    dpkg-buildpackage
+    cd ..
+    service carbon-cache stop
+    dpkg -i statsd*.deb
+    service statsd stop
 
-    # Start Services
-    /opt/graphite/bin/carbon-cache.py start
-    cd /opt/statsd
-    node ./stats.js ./localConfig.js  &
-
+    cp /vagrant/files/localConfig.js /etc/statsd/localConfig.js
+    cp /vagrant/files/storage-aggregation.conf /etc/carbon/storage-aggregation.conf
+    service carbon-cache start
+    service statsd       start    
 SCRIPT
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
@@ -98,7 +79,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # please see the online documentation at vagrantup.com.
 
   # Every Vagrant virtual environment requires a box to build off of.
-  config.vm.box = "hashicorp/precise64"
+  config.vm.box = "ubuntu/trusty64"
+  #config.vm.box ="hashicorp/precise64"
   config.vm.provision :shell, :inline => $script
 
   # Boot with a GUI so you can see the screen. (Default is headless)
