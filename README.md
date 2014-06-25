@@ -1,14 +1,15 @@
 EC-Graphite
 ===========
 
-A Vagrant VM to setup a statsd and graphite environment.
+A Vagrant VM to setup a statsd and graphite environment. The box has been build following the directions at 
+	https://www.digitalocean.com/community/tutorials/how-to-configure-statsd-to-collect-arbitrary-stats-for-graphite-on-ubuntu-14-04
+
 
 The Vm created has a default address of 192.168.56.20 and is named graphite
 
 The user/password for the Graphite DB is graphite/graphite
 
-When your graphite Vagrant box is up, do not forget to modify the wrapper.conf
-on your commander server (minimum version is 5.0.1).
+When your graphite Vagrant box is up, do not forget to modify the wrapper.conf on your commander server (minimum version is 5.0.1).
 
 Uncomment the following lines and be sure to point to your statsd/graphite
 machine.
