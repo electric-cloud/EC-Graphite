@@ -56,7 +56,7 @@ service apache2 reload
 
 #install and configure statsd
 apt-get -y -f install
-apt-get install -y npm dh-systemd git nodejs nodejs-legacy devscripts debhelper
+apt-get install -y npm dh-systemd git nodejs nodejs-legacy devscripts debhelper 
 cd /opt
 git clone https://github.com/etsy/statsd.git
 cd statsd
