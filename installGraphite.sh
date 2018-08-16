@@ -30,6 +30,7 @@ CREATE DATABASE graphite WITH OWNER graphite;
 DB
 
 cp $STARTINGDIR/files/local_settings.py /etc/graphite/local_settings.py
+graphite-manage migrate auth
 graphite-manage syncdb --noinput
 graphite-manage createsuperuser --username="${login}" --email="${email}" --noinput
 expect << DONE
@@ -69,4 +70,11 @@ service statsd stop
 cp $STARTINGDIR/files/localConfig.js /etc/statsd/localConfig.js
 cp $STARTINGDIR/files/storage-aggregation.conf /etc/carbon/storage-aggregation.conf
 service carbon-cache start
-service statsd       start    
+service statsd       start
+
+# Install Grafana
+cd
+wget https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana_5.1.4_amd64.deb
+sudo apt-get install -y adduser libfontconfig
+sudo dpkg -i grafana_5.1.4_amd64.deb
+sudo /bin/systemctl start grafana-server
