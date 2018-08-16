@@ -15,10 +15,13 @@ git clone https://github.com/electric-cloud/EC-Graphite.git
 cd EC-Graphite
 sudo ./installGraphite.sh
 ```
+Grafana UI is at port 3000, admin/admin
 
-The user/password for the Graphite DB is graphite/graphite
+Graphite UI is at port 80, graphite/graphite
 
-When your graphite Vagrant box is up, do not forget to modify the wrapper.conf on your commander server (minimum version is 5.0.1).
+Graphite DB is also graphite/graphite
+
+Do not forget to modify the wrapper.conf on your commander server (minimum version is 5.0.1).
 
 Uncomment the following lines and be sure to point to your statsd/graphite
 machine.

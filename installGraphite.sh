@@ -6,8 +6,7 @@ export VERSION=0.9.10
 STARTINGDIR=$PWD
 
 set -x
-echo I am provisioning...
-#date > /etc/vagrant_provisioned_at
+
 apt-get update
 echo "America/Los_Angeles" | sudo tee /etc/timezone
 ntpdate -u http://pool.ntp.org
