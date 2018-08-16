@@ -9,6 +9,11 @@ A Vagrant VM to setup a statsd and graphite environment. The box has been build 
 The VM created has a default address of 192.168.56.20 and is named graphite
 
 ## Ubuntu Installation
+
+Make sure the following ports are open:
+- udp 5125
+- tcp 22, 80, 3000
+
 (Enter yes at the prompt.  TODO: automate this)
 ```
 git clone https://github.com/electric-cloud/EC-Graphite.git
